@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TagIt — Photo Annotation Tool</title>
+  <link rel="stylesheet" href="TagStyles.css">
+</head>
+<body>
+  <!-- Toolbar -->
+  <div id="toolbar">
+    <div class="toolbar-row">
+      <div class="toolbar-group">
+        <label class="btn btn-upload">
+          Upload
+          <input type="file" id="file-input" accept=".png,.jpg,.jpeg,.bmp,.tiff,.gif,.webp" hidden>
+        </label>
+      </div>
+
+      <div class="toolbar-group toolbar-tools">
+        <button id="tool-box" class="btn tool-btn active" title="Box tool (B)">Box</button>
+        <button id="tool-arrow" class="btn tool-btn" title="Arrow tool (A)">Arrow</button>
+        <button id="tool-text" class="btn tool-btn" title="Text tool (T)">Text</button>
+        <button id="tool-select" class="btn tool-btn" title="Select tool (V)">Select</button>
+      </div>
+
+      <div class="toolbar-group">
+        <label class="toolbar-label">Color
+          <input type="color" id="global-color" value="#ffffff">
+        </label>
+      </div>
+
+      <div class="toolbar-group">
+        <label class="toolbar-label">Crop
+          <select id="crop-select">
+            <option value="none">Original</option>
+            <option value="1:1">1:1</option>
+            <option value="4:3">4:3</option>
+            <option value="16:9">16:9</option>
+            <option value="9:16">9:16</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="toolbar-group">
+        <button id="btn-download-jpg" class="btn btn-download" disabled>Download JPG</button>
+        <button id="btn-download-png" class="btn btn-download" disabled>Download PNG</button>
+      </div>
+
+      <div class="toolbar-logo">
+        <span class="logo">Tag<span class="logo-accent">It</span><span class="logo-bang">!</span></span>
+      </div>
+    </div>
+
+    <div class="toolbar-row">
+      <div class="toolbar-group">
+        <label class="toolbar-label">Brightness
+          <input type="range" id="brightness" min="0" max="200" value="100">
+          <span id="brightness-val">100%</span>
+        </label>
+      </div>
+      <div class="toolbar-group">
+        <label class="toolbar-label">Contrast
+          <input type="range" id="contrast" min="0" max="200" value="100">
+          <span id="contrast-val">100%</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main area -->
+  <div id="main">
+    <!-- Canvas area -->
+    <div id="canvas-container">
+      <div id="drop-zone">
+        <p>Drop an image here or click Upload</p>
+      </div>
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <h3>Annotations</h3>
+      <ul id="annotation-list"></ul>
+
+      <div id="properties-panel" class="hidden">
+        <h3>Properties</h3>
+
+        <label class="prop-label">Label
+          <input type="text" id="prop-label" placeholder="Label text">
+        </label>
+
+        <label class="prop-label" id="line-color-container">Line Color
+          <input type="color" id="prop-color">
+        </label>
+
+        <label class="prop-label">Label Color
+          <input type="color" id="prop-label-color">
+        </label>
+
+        <label class="prop-label">Font Size
+          <input type="range" id="prop-font-size" min="12" max="72" value="16">
+          <span id="prop-font-size-val">16px</span>
+        </label>
+
+        <label class="prop-label" id="line-width-container">Line Width
+          <input type="range" id="prop-line-width" min="1" max="6" value="2">
+          <span id="prop-line-width-val">2px</span>
+        </label>
+
+        <label class="prop-label prop-checkbox" id="arrowhead-container">
+          <input type="checkbox" id="prop-arrowhead" checked>
+          Show Arrowhead
+        </label>
+
+        <label class="prop-label label-pos-group" id="label-pos-container">Label Position
+          <select id="prop-label-pos">
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+        </label>
+
+        <button id="prop-delete" class="btn btn-delete">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="TagApp.js"></script>
+</body>
+</html>
