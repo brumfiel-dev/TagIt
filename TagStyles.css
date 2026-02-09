@@ -253,6 +253,7 @@ body {
 
 #sidebar-logo img {
   width: 100%;
+  max-width: 180px;
 }
 
 #sidebar h3 {
