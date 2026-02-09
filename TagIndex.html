@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TagIt — Photo Annotation Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap">
   <link rel="stylesheet" href="TagStyles.css">
 </head>
 <body>
@@ -65,6 +68,15 @@
           <span id="contrast-val">100%</span>
         </label>
       </div>
+      <div class="toolbar-group">
+        <label class="toolbar-label">Zoom
+          <input type="range" id="zoom" min="100" max="500" value="100">
+          <span id="zoom-val">100%</span>
+        </label>
+      </div>
+      <div class="toolbar-group">
+        <button id="btn-reset-view" class="btn btn-reset" title="Reset brightness, contrast & zoom">Reset</button>
+      </div>
     </div>
   </div>
 
@@ -113,7 +125,7 @@
           Show Arrowhead
         </label>
 
-        <label class="prop-label label-pos-group" id="label-pos-container">Label Position
+        <label class="prop-label" id="label-pos-container">Label Position
           <select id="prop-label-pos">
             <option value="top">Top</option>
             <option value="bottom">Bottom</option>
@@ -123,6 +135,10 @@
         </label>
 
         <button id="prop-delete" class="btn btn-delete">Delete</button>
+      </div>
+
+      <div id="sidebar-logo">
+        <img src="blimp-logo.png" alt="TagIt logo">
       </div>
     </div>
   </div>

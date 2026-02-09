@@ -173,6 +173,11 @@ body {
   background: var(--accent-hover);
 }
 
+.btn-reset {
+  font-size: 11px;
+  padding: 3px 8px;
+}
+
 .btn-delete {
   background: var(--danger);
   border-color: var(--danger);
@@ -195,7 +200,7 @@ body {
 #canvas-container {
   flex: 1;
   position: relative;
-  overflow: hidden;
+  overflow: auto;
   background: #111122;
   display: flex;
   align-items: center;
@@ -236,6 +241,18 @@ body {
   padding: 12px;
   overflow-y: auto;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#sidebar-logo {
+  margin-top: auto;
+  padding-top: 16px;
+  text-align: center;
+}
+
+#sidebar-logo img {
+  width: 100%;
 }
 
 #sidebar h3 {

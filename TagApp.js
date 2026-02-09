@@ -13,6 +13,8 @@
   const contrastSlider = $("contrast");
   const brightnessVal = $("brightness-val");
   const contrastVal = $("contrast-val");
+  const zoomSlider = $("zoom");
+  const zoomVal = $("zoom-val");
   const annotationList = $("annotation-list");
   const propsPanel = $("properties-panel");
   const propLabel = $("prop-label");
@@ -52,6 +54,7 @@
   let counters = { box: 0, arrow: 0, text: 0 };
   let originalFileName = "image";
   let brightness = 100, contrast = 100;
+  let zoomLevel = 100;
 
   // Crop
   let cropRatio = null;
@@ -145,7 +148,7 @@
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
     if (TOOL_KEYS[e.key]) {
       setTool(TOOL_KEYS[e.key]);
-    } else if ((e.key === "Delete" || e.key === "Backspace") && selectedId != null) {
+    } else if ((e.key === "Delete" || e.key === "Backspace") && selectedId !== null) {
       deleteAnnotation(selectedId);
     } else if (e.key === "Escape") {
       deselectAll();
@@ -156,6 +159,18 @@
   // ── Image upload ──
   $("file-input").addEventListener("change", (e) => {
     if (e.target.files.length) loadImageFile(e.target.files[0]);
+  });
+
+  document.addEventListener("paste", (e) => {
+    const items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        loadImageFile(item.getAsFile());
+        return;
+      }
+    }
   });
 
   canvasContainer.addEventListener("dragover", (e) => {
@@ -186,12 +201,7 @@
         cropSelect.value = "none";
         cropRatio = null;
         cropRect = null;
-        brightness = 100;
-        contrast = 100;
-        brightnessSlider.value = 100;
-        contrastSlider.value = 100;
-        brightnessVal.textContent = "100%";
-        contrastVal.textContent = "100%";
+        resetViewControls();
         fitCanvas();
         btnDownloadJpg.disabled = false;
         btnDownloadPng.disabled = false;
@@ -210,13 +220,19 @@
     displayScale = Math.min(canvasContainer.clientWidth / iw, canvasContainer.clientHeight / ih, 1);
     imgDrawW = Math.round(iw * displayScale);
     imgDrawH = Math.round(ih * displayScale);
-    canvas.width = imgDrawW;
-    canvas.height = imgDrawH;
+    canvas.width = Math.round(imgDrawW * zoomLevel / 100);
+    canvas.height = Math.round(imgDrawH * zoomLevel / 100);
     if (cropRatio) initCrop();
     render();
   }
 
   window.addEventListener("resize", fitCanvas);
+
+  function resetViewControls() {
+    brightness = 100; contrast = 100; zoomLevel = 100;
+    brightnessSlider.value = 100; contrastSlider.value = 100; zoomSlider.value = 100;
+    brightnessVal.textContent = "100%"; contrastVal.textContent = "100%"; zoomVal.textContent = "100%";
+  }
 
   // ── Brightness / Contrast ──
   brightnessSlider.addEventListener("input", () => {
@@ -228,6 +244,16 @@
     contrast = +contrastSlider.value;
     contrastVal.textContent = contrast + "%";
     render();
+  });
+  zoomSlider.addEventListener("input", () => {
+    zoomLevel = +zoomSlider.value;
+    zoomVal.textContent = zoomLevel + "%";
+    fitCanvas();
+  });
+
+  $("btn-reset-view").addEventListener("click", () => {
+    resetViewControls();
+    fitCanvas();
   });
 
   // ── Crop ──
@@ -289,6 +315,9 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.save();
+    ctx.scale(zoomLevel / 100, zoomLevel / 100);
+
+    ctx.save();
     ctx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
     ctx.drawImage(originalImage, 0, 0, imgDrawW, imgDrawH);
     ctx.restore();
@@ -298,6 +327,8 @@
     }
 
     if (cropRect) drawCropOverlay();
+
+    ctx.restore();
   }
 
   function drawAnnotation(ann, selected) {
@@ -344,7 +375,7 @@
 
   function drawBoxLabel(ann) {
     if (!ann.label) return;
-    ctx.font = `${ann.fontSize}px sans-serif`;
+    ctx.font = `${ann.fontSize}px 'Open Sans', sans-serif`;
     const textW = ctx.measureText(ann.label).width;
     const pos = getBoxLabelPos(ann, ann.fontSize, textW);
     ctx.fillStyle = ann.labelColor || ann.color;
@@ -354,7 +385,7 @@
 
   function drawArrowLabelOnCanvas(ann) {
     if (!ann.label) return;
-    ctx.font = `${ann.fontSize}px sans-serif`;
+    ctx.font = `${ann.fontSize}px 'Open Sans', sans-serif`;
     const textW = ctx.measureText(ann.label).width;
     const pos = getArrowLabelPos(ann.x1, ann.y1, ann.x2, ann.y2, ann.fontSize, textW, 6);
     ctx.fillStyle = ann.labelColor || ann.color;
@@ -364,14 +395,14 @@
 
   function drawText(ann) {
     if (!ann.label) return;
-    ctx.font = `${ann.fontSize}px sans-serif`;
+    ctx.font = `${ann.fontSize}px 'Open Sans', sans-serif`;
     ctx.fillStyle = ann.labelColor || ann.color;
     ctx.textBaseline = "top";
     ctx.fillText(ann.label, ann.x, ann.y);
   }
 
   function getTextBounds(ann) {
-    ctx.font = `${ann.fontSize}px sans-serif`;
+    ctx.font = `${ann.fontSize}px 'Open Sans', sans-serif`;
     return { x: ann.x, y: ann.y, w: ctx.measureText(ann.label || " ").width, h: ann.fontSize };
   }
 
@@ -422,10 +453,10 @@
   function drawCropOverlay() {
     const c = cropRect;
     ctx.fillStyle = "rgba(0,0,0,0.55)";
-    ctx.fillRect(0, 0, canvas.width, c.y);
-    ctx.fillRect(0, c.y + c.h, canvas.width, canvas.height - c.y - c.h);
+    ctx.fillRect(0, 0, imgDrawW, c.y);
+    ctx.fillRect(0, c.y + c.h, imgDrawW, imgDrawH - c.y - c.h);
     ctx.fillRect(0, c.y, c.x, c.h);
-    ctx.fillRect(c.x + c.w, c.y, canvas.width - c.x - c.w, c.h);
+    ctx.fillRect(c.x + c.w, c.y, imgDrawW - c.x - c.w, c.h);
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 1.5;
     ctx.setLineDash([6, 4]);
@@ -444,7 +475,7 @@
           const handle = hitHandlePoints(getBoxHandlePoints(ann), mx, my);
           if (handle !== null) return { type: "handle", ann, handle };
         }
-        if (pointNearBoxEdge(ann, mx, my, 8) || pointInRect(mx, my, ann.x, ann.y, ann.w, ann.h)) {
+        if (pointNearBoxEdge(ann, mx, my, 8)) {
           return { type: "annotation", ann };
         }
       } else if (ann.type === "arrow") {
@@ -488,7 +519,10 @@
   // ── Mouse events ──
   function getMousePos(e) {
     const rect = canvas.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    return {
+      x: (e.clientX - rect.left) * (canvas.width / rect.width) / (zoomLevel / 100),
+      y: (e.clientY - rect.top) * (canvas.height / rect.height) / (zoomLevel / 100),
+    };
   }
 
   canvas.addEventListener("mousedown", (e) => {
@@ -529,11 +563,8 @@
       dragStart = { x: mx, y: my };
     } else if (currentTool === "text") {
       deselectAll();
-      counters.text++;
-      const label = prompt("Text:", `Text ${counters.text}`);
-      if (label === null) {
-        counters.text--;
-      } else {
+      const label = prompt("Text:", `Text ${counters.text + 1}`);
+      if (label !== null) {
         const ann = createAnnotation("text", { x: mx, y: my, label });
         annotations.push(ann);
         selectAnnotation(ann.id);
@@ -552,6 +583,7 @@
     if (dragType === "create") {
       render();
       ctx.save();
+      ctx.scale(zoomLevel / 100, zoomLevel / 100);
       ctx.strokeStyle = globalColor.value;
       ctx.lineWidth = 2;
       if (currentTool === "box") {
@@ -744,7 +776,7 @@
     if (ann.type === "box") { ann.labelPos = propLabelPos.value; render(); }
   }));
   propDelete.addEventListener("click", () => {
-    if (selectedId != null) deleteAnnotation(selectedId);
+    if (selectedId !== null) deleteAnnotation(selectedId);
   });
 
   // ── Export ──
@@ -801,7 +833,7 @@
   function exportText(octx, ann, scale, sx, sy) {
     if (!ann.label) return;
     const fs = ann.fontSize * scale;
-    octx.font = `${fs}px sans-serif`;
+    octx.font = `${fs}px 'Open Sans', sans-serif`;
     octx.fillStyle = ann.labelColor || ann.color;
     octx.textBaseline = "top";
     octx.fillText(ann.label, ann.x * scale - sx, ann.y * scale - sy);
@@ -814,7 +846,7 @@
 
     if (!ann.label) return;
     const fs = ann.fontSize * scale;
-    octx.font = `${fs}px sans-serif`;
+    octx.font = `${fs}px 'Open Sans', sans-serif`;
     const textW = octx.measureText(ann.label).width;
     // Reuse shared position logic — pass a scaled-coords annotation
     const pos = getBoxLabelPos({ x: 0, y: 0, w: bw, h: bh, labelPos: ann.labelPos }, fs, textW);
@@ -845,7 +877,7 @@
 
     if (!ann.label) return;
     const fs = ann.fontSize * scale;
-    octx.font = `${fs}px sans-serif`;
+    octx.font = `${fs}px 'Open Sans', sans-serif`;
     const textW = octx.measureText(ann.label).width;
     const pos = getArrowLabelPos(ax1, ay1, ax2, ay2, fs, textW, 6 * scale);
     octx.fillStyle = ann.labelColor || ann.color;
